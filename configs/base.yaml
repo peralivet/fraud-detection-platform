@@ -1,0 +1,16 @@
+app:
+  name: "fraud-detection-platform"
+  version: "0.1.0"
+
+runtime:
+  environment: "base"
+  log_level: "INFO"
+
+paths:
+  data_dir: "data"
+  model_dir: "models"
+  reports_dir: "reports"
+
+api:
+  host: "0.0.0.0"
+  port: 8000
