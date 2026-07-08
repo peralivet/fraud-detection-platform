@@ -1,20 +1,39 @@
-# ML Platform Template
+# Real-Time Fraud Detection Platform
 
-A reusable production-ready machine learning project template for building reliable, testable, and maintainable ML and AI systems.
+A production-style machine learning platform for detecting potentially fraudulent financial transactions using batch scoring, real-time inference, monitoring, and cloud-ready engineering practices.
 
-This template provides a standard foundation for future machine learning projects, including configuration management, logging, testing, linting, type checking, Docker support, and CI/CD readiness.
+This project is part of a senior-level machine learning engineering portfolio. It is designed to demonstrate how fraud detection systems can be built with reliable software engineering foundations, not just model notebooks.
 
 ## Project Goals
 
-This template is designed to support machine learning projects that need to be:
+This project is designed to support:
 
-- reproducible
-- testable
-- configurable
-- maintainable
-- container-ready
-- CI/CD-ready
-- safe to extend into production workflows
+- transaction fraud detection
+- supervised machine learning model training
+- batch fraud scoring
+- real-time API-based fraud scoring
+- model evaluation and experiment tracking
+- monitoring for model quality and data drift
+- production-style configuration and logging
+- Docker-based runtime portability
+- CI/CD-ready development workflows
+- future AWS and Databricks deployment paths
+
+## Business Problem
+
+Financial platforms process large volumes of transactions every day. Some transactions may be fraudulent, but fraud is usually rare compared with normal activity.
+
+The business goal is to identify suspicious transactions early while reducing unnecessary false positives that may block legitimate customers.
+
+A practical fraud detection system must balance:
+
+- fraud capture rate
+- false positive rate
+- customer experience
+- model latency
+- explainability
+- monitoring
+- operational reliability
 
 ## Project Structure
 
@@ -31,7 +50,8 @@ fraud-detection-platform/
 ├── docs/
 │   ├── adr/
 │   ├── architecture/
-│   └── engineering-journal/
+│   ├── engineering-journal/
+│   └── template-usage.md
 ├── src/
 │   └── fraud_detection_platform/
 │       ├── config/
@@ -53,15 +73,15 @@ fraud-detection-platform/
 └── pyproject.toml
 ```
 
-## Core Features
+## Current Foundation
 
-This template includes:
+The project currently includes:
 
 - Python 3.12 project setup
 - `src/` package layout
 - `pyproject.toml` project configuration
 - optional dependency groups
-- environment-based YAML configuration
+- YAML-based configuration management
 - reusable logging utilities
 - Ruff linting and formatting
 - Pytest test suite
@@ -71,6 +91,26 @@ This template includes:
 - GitHub Actions CI workflow
 - Docker runtime support
 - documentation structure for architecture notes, ADRs, and engineering journals
+
+## Planned ML Platform Capabilities
+
+This project will evolve to include:
+
+- transaction data ingestion
+- exploratory data analysis
+- fraud-focused feature engineering
+- class imbalance handling
+- baseline ML models
+- advanced fraud detection models
+- model evaluation with fraud-specific metrics
+- model explainability
+- MLflow experiment tracking
+- batch inference pipeline
+- FastAPI real-time scoring endpoint
+- monitoring for drift and model performance
+- Databricks workflow integration
+- AWS deployment path
+- dashboard/reporting layer
 
 ## Development Setup
 
@@ -120,16 +160,6 @@ configs/
 └── logging.yaml
 ```
 
-The template separates shared configuration from environment-specific overrides.
-
-`base.yaml` contains default project settings.
-
-`development.yaml` contains local development overrides.
-
-`production.yaml` contains production-oriented overrides.
-
-`logging.yaml` contains logging configuration.
-
 Example usage:
 
 ```python
@@ -176,35 +206,17 @@ This runs:
 - Pytest tests
 - MyPy type checks
 
-The current quality gate should pass before changes are committed.
-
-## Pre-commit Hooks
-
-Install pre-commit hooks:
-
-```bash
-pre-commit install
-```
-
-Run all hooks manually:
-
-```bash
-pre-commit run --all-files
-```
-
-Pre-commit helps catch formatting, linting, YAML, TOML, whitespace, and file-ending issues before commits are created.
-
 ## Docker
 
-This project includes a `Dockerfile` so the template can run in a clean Linux container, independent of the local machine setup.
+This project includes a `Dockerfile` so the project can run in a clean Linux container, independent of the local machine setup.
 
-### Build the Docker image
+Build the Docker image:
 
 ```bash
 docker build -t fraud-detection-platform .
 ```
 
-### Run quality checks inside Docker
+Run quality checks inside Docker:
 
 ```bash
 docker run --rm fraud-detection-platform
@@ -215,20 +227,6 @@ By default, the container runs:
 ```bash
 make quality
 ```
-
-This verifies that linting, tests, and type checks pass inside the Docker environment.
-
-### Why Docker is used
-
-Docker helps ensure the project runs consistently across environments such as:
-
-- local development
-- CI/CD runners
-- AWS container services
-- Databricks-compatible workflows
-- future Kubernetes deployments
-
-The local `.venv` is not copied into Docker. The container installs its own dependencies because the container itself provides isolation and runs on Linux.
 
 ## CI/CD
 
@@ -245,8 +243,6 @@ It performs the same quality gate used locally:
 ```bash
 make quality
 ```
-
-This helps ensure that code passing locally also passes in a clean CI environment.
 
 ## Documentation
 
@@ -265,11 +261,11 @@ Architecture Decision Records explain important technical decisions, trade-offs,
 
 ### Architecture Notes
 
-Architecture documentation describes how the system is structured and how its components interact.
+Architecture documentation describes how the fraud detection system is structured and how its components interact.
 
 ### Engineering Journal
 
-The engineering journal captures implementation reasoning, lessons learned, and interview-ready explanations.
+The engineering journal captures implementation reasoning, lessons learned, debugging notes, and interview-ready explanations.
 
 ## Secrets Policy
 
@@ -284,54 +280,8 @@ Recommended secret management options include:
 - Databricks Secret Scopes
 - GitHub Actions Secrets
 
-## What Should Not Be Committed
-
-Avoid committing generated or local-only files such as:
-
-- `.venv/`
-- `build/`
-- `dist/`
-- `*.egg-info/`
-- `__pycache__/`
-- `.pytest_cache/`
-- `.mypy_cache/`
-- `.ruff_cache/`
-- raw datasets
-- model binaries
-- logs
-- local `.env` files
-
-These should be handled through `.gitignore` and `.dockerignore`.
-
-## Template Usage
-
-This repository is intended to serve as a reusable foundation for multiple machine learning and AI projects.
-
-Future projects can copy this template and then customize:
-
-- package name
-- project metadata
-- configuration values
-- dependencies
-- ML pipeline code
-- API services
-- data processing workflows
-- cloud deployment infrastructure
-- monitoring and observability components
-
-## Target Project Types
-
-This template can support projects such as:
-
-- real-time fraud detection
-- credit risk modeling
-- patient readmission prediction
-- clinical NLP systems
-- customer churn prediction
-- AI support ticket triage and RAG assistants
-
 ## Engineering Principle
 
-The goal of this template is not only to make code run.
+The goal of this project is not only to train a fraud model.
 
-The goal is to create a professional ML engineering foundation that is reproducible, observable, testable, maintainable, and ready to grow into production systems.
+The goal is to build a production-style ML system that is reproducible, testable, configurable, observable, and ready to evolve into cloud-based deployment workflows.
