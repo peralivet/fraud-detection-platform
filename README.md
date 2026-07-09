@@ -1,200 +1,493 @@
-# Real-Time Fraud Detection Platform
+# Fraud Detection Platform
 
-A production-style machine learning platform for detecting potentially fraudulent financial transactions using batch scoring, real-time inference, monitoring, and cloud-ready engineering practices.
+A production-style machine learning platform for detecting potentially fraudulent financial transactions.
 
-This project is part of a senior-level machine learning engineering portfolio. It is designed to demonstrate how fraud detection systems can be built with reliable software engineering foundations, not just model notebooks.
+This project is designed to demonstrate more than model training. It shows how a fraud detection system can be structured as a modular ML product with data validation, feature engineering, training, evaluation, model persistence, batch inference, business decision policy, automated tests, and command-line workflows.
 
-## Project Goals
+---
 
-This project is designed to support:
+## Overview
 
-- transaction fraud detection
-- supervised machine learning model training
-- batch fraud scoring
-- real-time API-based fraud scoring
-- model evaluation and experiment tracking
-- monitoring for model quality and data drift
-- production-style configuration and logging
-- Docker-based runtime portability
-- CI/CD-ready development workflows
-- future AWS and Databricks deployment paths
+Fraud detection is not only a classification problem. In a real business setting, the system must help teams decide what action to take on a transaction.
 
-## Business Problem
+This platform separates three important concepts:
 
-Financial platforms process large volumes of transactions every day. Some transactions may be fraudulent, but fraud is usually rare compared with normal activity.
+```text
+fraud_score
+    The model's probability-like estimate of fraud risk.
 
-The business goal is to identify suspicious transactions early while reducing unnecessary false positives that may block legitimate customers.
+fraud_prediction
+    The binary model output after applying a classification threshold.
 
-A practical fraud detection system must balance:
+recommended_action
+    The business-facing decision produced by the risk policy.
+```
 
-- fraud capture rate
-- false positive rate
-- customer experience
-- model latency
-- explainability
-- monitoring
-- operational reliability
+Example:
+
+```text
+fraud_score = 0.87
+fraud_prediction = 1
+recommended_action = block
+```
+
+This separation makes the system more production-oriented because the model and business rules can evolve independently.
+
+---
+
+## Why This Project Matters
+
+Many machine learning projects stop at notebooks and metrics. This project focuses on the engineering structure around the model.
+
+The goal is to build the foundation for a fraud detection platform that can eventually support:
+
+```text
+batch scoring
+real-time API scoring
+model tracking
+model monitoring
+cloud deployment
+business decision policies
+data drift detection
+```
+
+The current version runs locally, but it is structured with production-readiness in mind.
+
+---
+
+## Current Capabilities
+
+The platform currently supports:
+
+- Synthetic transaction data generation.
+- Transaction data validation.
+- Feature engineering.
+- Baseline fraud model training.
+- Fraud-focused classification metrics.
+- Model artifact saving and loading.
+- Batch inference using a saved model.
+- Labeled and unlabeled inference data.
+- Risk decision policy for business actions.
+- Configurable review and block thresholds.
+- Command-line workflows.
+- Automated tests with Pytest.
+- Static type checking with MyPy.
+- Linting and formatting with Ruff.
+- Pre-commit quality checks.
+
+---
+
+## Current End-to-End Workflow
+
+```text
+generate sample transaction data
+        ↓
+train baseline fraud model
+        ↓
+evaluate model performance
+        ↓
+save trained model artifact
+        ↓
+load model for batch inference
+        ↓
+score transactions
+        ↓
+apply risk decision policy
+        ↓
+write fraud predictions to CSV
+```
+
+---
+
+## Architecture
+
+The project uses a modular `src/` layout.
+
+```text
+src/fraud_detection_platform/
+├── api/
+├── cli/
+├── config/
+├── data/
+├── evaluation/
+├── features/
+├── logging/
+├── models/
+├── monitoring/
+├── pipelines/
+├── risk/
+└── utils/
+```
+
+### Data Layer
+
+Location:
+
+```text
+src/fraud_detection_platform/data/
+```
+
+Responsibilities:
+
+- Define transaction schemas.
+- Load transaction data.
+- Validate required columns.
+- Support training and inference data contracts.
+- Generate synthetic sample data.
+
+Important files:
+
+```text
+schema.py
+loader.py
+sample_generator.py
+```
+
+The platform separates training and inference schemas:
+
+```text
+Training data:
+    requires is_fraud
+
+Inference data:
+    does not require is_fraud
+```
+
+This matters because production scoring data usually does not have the true fraud label yet.
+
+---
+
+### Feature Engineering Layer
+
+Location:
+
+```text
+src/fraud_detection_platform/features/
+```
+
+Responsibilities:
+
+- Convert raw transaction data into model-ready features.
+- Extract time-based features.
+- Create amount-based features.
+
+Current engineered features include:
+
+```text
+transaction_hour
+transaction_day_of_week
+transaction_amount_log
+```
+
+The same feature logic is used during training and inference to prevent training-serving skew.
+
+---
+
+### Model Layer
+
+Location:
+
+```text
+src/fraud_detection_platform/models/
+```
+
+Responsibilities:
+
+- Build the baseline model.
+- Train the model.
+- Save trained model artifacts.
+- Load saved model artifacts.
+
+The current baseline model is a scikit-learn pipeline using:
+
+```text
+ColumnTransformer
+OneHotEncoder
+RandomForestClassifier
+```
+
+The model handles both categorical and numeric transaction features.
+
+---
+
+### Evaluation Layer
+
+Location:
+
+```text
+src/fraud_detection_platform/evaluation/
+```
+
+Responsibilities:
+
+- Calculate fraud-focused classification metrics.
+- Return structured metric results.
+
+Current metrics include:
+
+```text
+precision
+recall
+f1
+roc_auc
+pr_auc
+true_negatives
+false_positives
+false_negatives
+true_positives
+```
+
+Accuracy is not the main metric because fraud detection is usually highly imbalanced.
+
+---
+
+### Training Pipeline
+
+Location:
+
+```text
+src/fraud_detection_platform/pipelines/training.py
+```
+
+Responsibilities:
+
+- Load labeled transaction data.
+- Build the feature table.
+- Split data into training and test sets.
+- Train the baseline fraud model.
+- Generate fraud scores.
+- Convert scores into binary predictions.
+- Calculate evaluation metrics.
+- Optionally save the trained model artifact.
+
+---
+
+### Batch Inference Pipeline
+
+Location:
+
+```text
+src/fraud_detection_platform/pipelines/batch_inference.py
+```
+
+Responsibilities:
+
+- Load transaction data for inference.
+- Support unlabeled production-style input data.
+- Apply feature engineering.
+- Load a saved model artifact.
+- Generate fraud scores.
+- Convert scores into predictions.
+- Apply business decision policy.
+- Write prediction results to CSV.
+
+For labeled input data, the prediction output contains:
+
+```text
+transaction_id
+fraud_score
+fraud_prediction
+recommended_action
+is_fraud
+```
+
+For unlabeled input data, the prediction output contains:
+
+```text
+transaction_id
+fraud_score
+fraud_prediction
+recommended_action
+```
+
+---
+
+### Risk Decision Policy Layer
+
+Location:
+
+```text
+src/fraud_detection_platform/risk/decision_policy.py
+```
+
+Responsibilities:
+
+- Convert fraud scores into business-facing actions.
+- Keep business rules separate from model logic.
+
+Current default policy:
+
+```text
+fraud_score < 0.50        → approve
+fraud_score >= 0.50       → manual_review
+fraud_score >= 0.80       → block
+```
+
+Supported actions:
+
+```text
+approve
+manual_review
+block
+```
+
+This makes the platform more realistic because fraud teams often tune business thresholds without retraining the model.
+
+---
 
 ## Project Structure
 
 ```text
 fraud-detection-platform/
-├── .github/
-│   └── workflows/
-│       └── ci.yml
 ├── configs/
-│   ├── base.yaml
-│   ├── development.yaml
-│   ├── production.yaml
-│   └── logging.yaml
+├── data/
+│   ├── raw/
+│   └── processed/
 ├── docs/
-│   ├── adr/
 │   ├── architecture/
 │   ├── engineering-journal/
-│   └── template-usage.md
+│   └── ml-system/
+├── models/
 ├── src/
 │   └── fraud_detection_platform/
+│       ├── api/
+│       ├── cli/
 │       ├── config/
-│       │   └── settings.py
-│       └── logging/
-│           └── logger.py
+│       ├── data/
+│       ├── evaluation/
+│       ├── features/
+│       ├── logging/
+│       ├── models/
+│       ├── monitoring/
+│       ├── pipelines/
+│       ├── risk/
+│       └── utils/
 ├── tests/
-│   ├── test_logger.py
-│   ├── test_package.py
-│   └── test_settings.py
-├── .dockerignore
-├── .env.example
-├── .gitignore
-├── .pre-commit-config.yaml
-├── CONTRIBUTING.md
-├── Dockerfile
 ├── Makefile
-├── README.md
-└── pyproject.toml
+├── pyproject.toml
+└── README.md
 ```
 
-## Current Foundation
+Generated files under `data/`, `models/`, `build/`, and local environment folders are not intended to be committed.
 
-The project currently includes:
+---
 
-- Python 3.12 project setup
-- `src/` package layout
-- `pyproject.toml` project configuration
-- optional dependency groups
-- YAML-based configuration management
-- reusable logging utilities
-- Ruff linting and formatting
-- Pytest test suite
-- MyPy type checking
-- pre-commit hooks
-- Makefile automation
-- GitHub Actions CI workflow
-- Docker runtime support
-- documentation structure for architecture notes, ADRs, and engineering journals
+## Setup
 
-## Planned ML Platform Capabilities
-
-This project will evolve to include:
-
-- transaction data ingestion
-- exploratory data analysis
-- fraud-focused feature engineering
-- class imbalance handling
-- baseline ML models
-- advanced fraud detection models
-- model evaluation with fraud-specific metrics
-- model explainability
-- MLflow experiment tracking
-- batch inference pipeline
-- FastAPI real-time scoring endpoint
-- monitoring for drift and model performance
-- Databricks workflow integration
-- AWS deployment path
-- dashboard/reporting layer
-
-## Development Setup
-
-Create and activate a Python 3.12 virtual environment:
+Create and activate a virtual environment:
 
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
 ```
 
-Install the development dependencies:
+Install dependencies:
 
 ```bash
-make install
+python -m pip install --upgrade pip
+python -m pip install ".[dev,config,ml,api,monitoring]"
 ```
 
-## Development Commands
-
-This project uses a `Makefile` to standardize common development workflows.
-
-| Command | Purpose |
-|---|---|
-| `make install` | Install development and configuration dependencies |
-| `make install-all` | Install development, ML, API, and monitoring dependencies |
-| `make lint` | Run Ruff linting |
-| `make format` | Format Python code with Ruff |
-| `make test` | Run the Pytest test suite |
-| `make type-check` | Run MyPy type checks |
-| `make quality` | Run linting, tests, and type checks |
-| `make clean` | Remove generated caches and build artifacts |
-
-Before committing changes, run:
+Install pre-commit hooks:
 
 ```bash
-make quality
+pre-commit install
 ```
 
-## Configuration
+---
 
-Configuration files are stored in the `configs/` directory.
+## Quickstart
+
+### 1. Generate Sample Transaction Data
+
+```bash
+python -m fraud_detection_platform.cli.generate_sample_data \
+  --output-path data/raw/sample_transactions.csv \
+  --row-count 100
+```
+
+This creates a local synthetic dataset for development and testing.
+
+---
+
+### 2. Train and Save the Model
+
+```bash
+python -m fraud_detection_platform.cli.train \
+  --data-path data/raw/sample_transactions.csv \
+  --model-output-path models/baseline_fraud_model.joblib
+```
+
+Example output:
 
 ```text
-configs/
-├── base.yaml
-├── development.yaml
-├── production.yaml
-└── logging.yaml
+Fraud detection training completed
+Train rows: 75
+Test rows: 25
+Precision: 1.0000
+Recall: 1.0000
+F1: 1.0000
+ROC-AUC: 1.0000
+PR-AUC: 1.0000
+True negatives: 20
+False positives: 0
+False negatives: 0
+True positives: 5
 ```
 
-Example usage:
+The perfect metrics are expected for the current toy synthetic data because the fraud patterns are intentionally simple.
 
-```python
-from fraud_detection_platform.config.settings import load_settings
+---
 
-settings = load_settings("development")
+### 3. Run Batch Inference
 
-print(settings.app.name)
-print(settings.runtime.environment)
+```bash
+python -m fraud_detection_platform.cli.batch_inference \
+  --data-path data/raw/sample_transactions.csv \
+  --model-path models/baseline_fraud_model.joblib \
+  --output-path data/processed/fraud_predictions.csv
 ```
 
-## Logging
-
-Reusable logging utilities are available from:
-
-```python
-from fraud_detection_platform.logging import get_logger, setup_logging
-
-setup_logging()
-
-logger = get_logger(__name__)
-logger.info("Application started")
-```
-
-Logging is configured through:
+Example output:
 
 ```text
-configs/logging.yaml
+Fraud batch inference completed
+Scored rows: 100
+Predictions written to: data/processed/fraud_predictions.csv
 ```
 
-If no logging config file is found, the project falls back to a basic logging setup.
+---
+
+### 4. Run Batch Inference with Custom Risk Thresholds
+
+```bash
+python -m fraud_detection_platform.cli.batch_inference \
+  --data-path data/raw/sample_transactions.csv \
+  --model-path models/baseline_fraud_model.joblib \
+  --output-path data/processed/fraud_predictions.csv \
+  --threshold 0.5 \
+  --review-threshold 0.4 \
+  --block-threshold 0.85
+```
+
+Threshold meanings:
+
+```text
+--threshold
+    Controls the binary fraud_prediction.
+
+--review-threshold
+    Controls when a transaction should be sent to manual review.
+
+--block-threshold
+    Controls when a transaction should be blocked.
+```
+
+---
 
 ## Quality Checks
 
-Run the full local quality gate:
+Run all quality checks:
 
 ```bash
 make quality
@@ -202,86 +495,151 @@ make quality
 
 This runs:
 
-- Ruff linting
-- Pytest tests
-- MyPy type checks
-
-## Docker
-
-This project includes a `Dockerfile` so the project can run in a clean Linux container, independent of the local machine setup.
-
-Build the Docker image:
-
-```bash
-docker build -t fraud-detection-platform .
+```text
+ruff check .
+pytest
+mypy src tests
 ```
 
-Run quality checks inside Docker:
+Run pre-commit checks:
 
 ```bash
-docker run --rm fraud-detection-platform
+pre-commit run --all-files
 ```
 
-By default, the container runs:
+---
+
+## Testing
+
+Run the test suite:
 
 ```bash
-make quality
+pytest
 ```
 
-## CI/CD
+The tests cover:
 
-The project includes a GitHub Actions workflow at:
+- Package import validation.
+- Settings loading.
+- Logging utilities.
+- Data loading and validation.
+- Feature engineering.
+- Classification metrics.
+- Baseline model training.
+- Model persistence.
+- Training pipeline.
+- Batch inference pipeline.
+- CLI argument parsing.
+- Risk decision policy.
+- Labeled and unlabeled inference data.
+
+---
+
+## Data Strategy
+
+The project currently uses synthetic data for local engineering development.
+
+This synthetic data is useful for:
 
 ```text
-.github/workflows/ci.yml
+unit tests
+pipeline validation
+CLI testing
+local smoke tests
 ```
 
-The CI workflow runs on pushes to `main` and on pull requests.
+However, it is intentionally simple and should not be treated as realistic fraud data.
 
-It performs the same quality gate used locally:
+Planned data improvements:
 
-```bash
-make quality
-```
+1. Keep the current synthetic data generator for fast tests.
+2. Add support for a more realistic public fraud dataset.
+3. Add dataset-specific ingestion and preprocessing.
+4. Evaluate the model on more realistic class imbalance.
+5. Improve the model and metrics using realistic fraud patterns.
 
-## Documentation
+The next planned dataset direction is PaySim or another public fraud dataset with more realistic transaction behavior.
 
-The `docs/` directory is used to capture design decisions and engineering notes.
+---
+
+## Current Limitations
+
+The current platform is an early production-style skeleton. Known limitations include:
+
+1. The current sample data is synthetic and simple.
+2. The model performs perfectly on sample data because the fraud patterns are obvious.
+3. The training split is random rather than time-based.
+4. There is no real-time API endpoint yet.
+5. There is no model registry yet.
+6. There is no MLflow experiment tracking yet.
+7. There is no model explainability layer yet.
+8. There is no monitoring or drift detection yet.
+9. There is no cloud deployment yet.
+10. The baseline model has not yet been trained on realistic public fraud data.
+
+---
+
+## Roadmap
+
+Planned improvements:
 
 ```text
-docs/
-├── adr/
-├── architecture/
-└── engineering-journal/
+1. Push the project to GitHub.
+2. Improve README and documentation.
+3. Add realistic public fraud dataset support.
+4. Add dataset ingestion and preprocessing.
+5. Improve model evaluation on imbalanced data.
+6. Add MLflow experiment tracking.
+7. Add FastAPI real-time prediction service.
+8. Add request and response schemas.
+9. Add model metadata and versioning.
+10. Add explainability using feature importance or SHAP.
+11. Add monitoring and drift detection.
+12. Containerize the API and batch workflows.
+13. Prepare AWS and Databricks deployment.
 ```
 
-### ADRs
+---
 
-Architecture Decision Records explain important technical decisions, trade-offs, and alternatives considered.
+## Portfolio Talking Points
 
-### Architecture Notes
+This project demonstrates:
 
-Architecture documentation describes how the fraud detection system is structured and how its components interact.
+- Production-style Python project structure.
+- Modular ML system design.
+- Data validation.
+- Training and inference schema separation.
+- Feature engineering reuse.
+- Model training and evaluation.
+- Fraud-focused metrics.
+- Model persistence.
+- Batch scoring.
+- Business decision policy.
+- CLI workflow design.
+- Automated testing.
+- Type checking.
+- Linting and formatting.
+- Pre-commit quality gates.
+- Architecture documentation.
 
-### Engineering Journal
+The strongest architectural decision so far is the separation between:
 
-The engineering journal captures implementation reasoning, lessons learned, debugging notes, and interview-ready explanations.
+```text
+model score
+model prediction
+business action
+```
 
-## Secrets Policy
+This separation makes the platform easier to explain, test, tune, and extend.
 
-Never commit real secrets, passwords, API keys, tokens, private keys, or cloud credentials.
+---
 
-Use `.env.example` to document required environment variables, but keep real values in local `.env` files or managed secret stores.
+## Engineering Philosophy
 
-Recommended secret management options include:
+This project is intentionally being built as an ML platform, not just a model.
 
-- AWS Secrets Manager
-- Azure Key Vault
-- Databricks Secret Scopes
-- GitHub Actions Secrets
+A notebook can show experimentation.
 
-## Engineering Principle
+A platform shows engineering maturity.
 
-The goal of this project is not only to train a fraud model.
-
-The goal is to build a production-style ML system that is reproducible, testable, configurable, observable, and ready to evolve into cloud-based deployment workflows.
+The goal is to demonstrate the ability to design, test, document, and evolve a machine learning system in a way that is understandable to both technical and business stakeholders.
