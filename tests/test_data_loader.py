@@ -48,6 +48,9 @@ def test_split_features_and_target_returns_expected_columns() -> None:
             "customer_id": ["cust_001", "cust_002"],
             "transaction_amount": [125.50, 75.00],
             "transaction_time": ["2026-01-01 10:00:00", "2026-01-01 11:00:00"],
+            "transaction_hour": [10, 11],
+            "transaction_day_of_week": [3, 3],
+            "transaction_amount_log": [4.8395, 4.3307],
             "merchant_category": ["electronics", "grocery"],
             "payment_channel": ["online", "pos"],
             "is_fraud": [0, 1],
@@ -59,7 +62,9 @@ def test_split_features_and_target_returns_expected_columns() -> None:
     assert list(features.columns) == [
         "customer_id",
         "transaction_amount",
-        "transaction_time",
+        "transaction_hour",
+        "transaction_day_of_week",
+        "transaction_amount_log",
         "merchant_category",
         "payment_channel",
     ]

@@ -19,7 +19,9 @@ REQUIRED_COLUMNS: Final[list[str]] = [
 FEATURE_COLUMNS: Final[list[str]] = [
     "customer_id",
     "transaction_amount",
-    "transaction_time",
+    "transaction_hour",
+    "transaction_day_of_week",
+    "transaction_amount_log",
     "merchant_category",
     "payment_channel",
 ]
