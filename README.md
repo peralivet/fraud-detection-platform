@@ -562,6 +562,80 @@ The next planned dataset direction is PaySim or another public fraud dataset wit
 
 ---
 
+## Using PaySim Data
+
+The project currently includes a small synthetic data generator for fast local testing and CI validation. For more realistic fraud modeling, the next supported dataset is PaySim.
+
+PaySim is a public fraud detection dataset available on Kaggle as:
+
+```text
+Synthetic Financial Datasets For Fraud Detection
+Kaggle dataset: ealaxi/paysim1
+```
+
+The raw PaySim dataset should not be committed to this repository. Download it manually from Kaggle and place it locally under:
+
+```text
+data/external/
+```
+
+Example expected raw file path:
+
+```text
+data/external/PS_20174392719_1491204439457_log.csv
+```
+
+The project provides a CLI command to transform raw PaySim data into the platform's internal transaction schema.
+
+```bash
+python -m fraud_detection_platform.cli.prepare_paysim_data \
+  --input-path data/external/PS_20174392719_1491204439457_log.csv \
+  --output-path data/raw/paysim_transactions.csv
+```
+
+This converts PaySim columns into the platform schema:
+
+```text
+PaySim column              Platform column
+-----------------------------------------------------
+generated row id           transaction_id
+nameOrig                   customer_id
+amount                     transaction_amount
+step                       transaction_time
+type                       merchant_category
+type                       payment_channel
+isFraud                    is_fraud
+```
+
+After conversion, train the baseline model on the PaySim-transformed data:
+
+```bash
+python -m fraud_detection_platform.cli.train \
+  --data-path data/raw/paysim_transactions.csv \
+  --model-output-path models/paysim_baseline_fraud_model.joblib
+```
+
+Then run batch inference:
+
+```bash
+python -m fraud_detection_platform.cli.batch_inference \
+  --data-path data/raw/paysim_transactions.csv \
+  --model-path models/paysim_baseline_fraud_model.joblib \
+  --output-path data/processed/paysim_fraud_predictions.csv
+```
+
+Generated data files and model artifacts should remain local and should not be committed:
+
+```text
+data/external/
+data/raw/
+data/processed/
+models/
+```
+
+This keeps the GitHub repository lightweight while still allowing the full data preparation, training, and inference workflow to be reproduced locally.
+
+
 ## Current Limitations
 
 The current platform is an early production-style skeleton. Known limitations include:
@@ -586,7 +660,7 @@ Planned improvements:
 ```text
 1. Push the project to GitHub.
 2. Improve README and documentation.
-3. Add realistic public fraud dataset support.
+3. Add PaySim data ingestion and preparation workflow.
 4. Add dataset ingestion and preprocessing.
 5. Improve model evaluation on imbalanced data.
 6. Add MLflow experiment tracking.
