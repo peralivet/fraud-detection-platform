@@ -6,7 +6,8 @@ install:
 
 install-all:
 	python -m pip install --upgrade pip
-	python -m pip install -e ".[dev,config,ml,api,monitoring]"
+	python -m pip install ".[dev,config,ml,api,monitoring]"
+
 
 lint:
 	ruff check .
