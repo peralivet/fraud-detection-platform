@@ -31,7 +31,7 @@ env/
 data/raw/
 data/interim/
 data/processed/
-models/
+/models/
 mlruns/
 *.pkl
 *.joblib
