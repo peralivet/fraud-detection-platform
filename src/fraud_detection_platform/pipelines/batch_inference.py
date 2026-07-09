@@ -7,6 +7,7 @@ from fraud_detection_platform.data.loader import load_transaction_data, split_fe
 from fraud_detection_platform.data.schema import TARGET_COLUMN, TRANSACTION_ID_COLUMN
 from fraud_detection_platform.features.transformers import build_basic_feature_table
 from fraud_detection_platform.models.persistence import load_model
+from fraud_detection_platform.risk.decision_policy import RiskDecisionPolicy, recommend_action
 
 
 @dataclass(frozen=True)
@@ -14,6 +15,7 @@ class BatchInferenceConfig:
     """Configuration for the fraud batch inference pipeline."""
 
     prediction_threshold: float = 0.5
+    risk_policy: RiskDecisionPolicy = RiskDecisionPolicy()
 
 
 @dataclass(frozen=True)
@@ -45,11 +47,15 @@ def run_batch_inference_pipeline(
     scored_data = raw_data.copy()
     scored_data["fraud_score"] = fraud_scores
     scored_data["fraud_prediction"] = fraud_predictions
+    scored_data["recommended_action"] = [
+        recommend_action(float(score), resolved_config.risk_policy) for score in fraud_scores
+    ]
 
     selected_columns = [
         TRANSACTION_ID_COLUMN,
         "fraud_score",
         "fraud_prediction",
+        "recommended_action",
         TARGET_COLUMN,
     ]
 

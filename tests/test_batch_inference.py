@@ -115,8 +115,12 @@ def test_run_batch_inference_pipeline_writes_predictions(tmp_path: Path) -> None
         "transaction_id",
         "fraud_score",
         "fraud_prediction",
+        "recommended_action",
         "is_fraud",
     ]
     assert len(predictions) == 20
     assert predictions["fraud_score"].between(0.0, 1.0).all()
     assert set(predictions["fraud_prediction"].unique()).issubset({0, 1})
+    assert set(predictions["recommended_action"].unique()).issubset(
+        {"approve", "manual_review", "block"}
+    )
