@@ -6,15 +6,21 @@ TARGET_COLUMN: Final[str] = "is_fraud"
 
 TRANSACTION_ID_COLUMN: Final[str] = "transaction_id"
 
-REQUIRED_COLUMNS: Final[list[str]] = [
+BASE_TRANSACTION_COLUMNS: Final[list[str]] = [
     "transaction_id",
     "customer_id",
     "transaction_amount",
     "transaction_time",
     "merchant_category",
     "payment_channel",
-    "is_fraud",
 ]
+
+REQUIRED_COLUMNS: Final[list[str]] = [
+    *BASE_TRANSACTION_COLUMNS,
+    TARGET_COLUMN,
+]
+
+INFERENCE_REQUIRED_COLUMNS: Final[list[str]] = BASE_TRANSACTION_COLUMNS
 
 FEATURE_COLUMNS: Final[list[str]] = [
     "customer_id",

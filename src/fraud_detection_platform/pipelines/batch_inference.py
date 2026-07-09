@@ -3,7 +3,10 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from fraud_detection_platform.data.loader import load_transaction_data, split_features_and_target
+from fraud_detection_platform.data.loader import (
+    load_inference_transaction_data,
+    select_features,
+)
 from fraud_detection_platform.data.schema import TARGET_COLUMN, TRANSACTION_ID_COLUMN
 from fraud_detection_platform.features.transformers import build_basic_feature_table
 from fraud_detection_platform.models.persistence import load_model
@@ -35,9 +38,9 @@ def run_batch_inference_pipeline(
     """Run batch inference on transaction data using a saved fraud model."""
     resolved_config = config or BatchInferenceConfig()
 
-    raw_data = load_transaction_data(data_path)
+    raw_data = load_inference_transaction_data(data_path)
     feature_data = build_basic_feature_table(raw_data)
-    features, _ = split_features_and_target(feature_data)
+    features = select_features(feature_data)
 
     model = load_model(model_path)
 
@@ -56,8 +59,10 @@ def run_batch_inference_pipeline(
         "fraud_score",
         "fraud_prediction",
         "recommended_action",
-        TARGET_COLUMN,
     ]
+
+    if TARGET_COLUMN in scored_data.columns:
+        selected_columns.append(TARGET_COLUMN)
 
     resolved_output_path = Path(output_path)
     resolved_output_path.parent.mkdir(parents=True, exist_ok=True)
