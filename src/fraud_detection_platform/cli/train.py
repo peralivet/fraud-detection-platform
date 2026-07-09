@@ -37,6 +37,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--model-output-path",
+        type=Path,
+        default=None,
+        help="Optional path where the trained model artifact should be saved.",
+    )
+
+    parser.add_argument(
         "--random-state",
         type=int,
         default=42,
@@ -55,6 +62,7 @@ def main() -> None:
         test_size=args.test_size,
         random_state=args.random_state,
         prediction_threshold=args.threshold,
+        model_output_path=args.model_output_path,
     )
 
     result = run_training_pipeline(args.data_path, config)

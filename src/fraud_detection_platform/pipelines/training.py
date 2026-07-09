@@ -12,6 +12,7 @@ from fraud_detection_platform.evaluation.metrics import (
 )
 from fraud_detection_platform.features.transformers import build_basic_feature_table
 from fraud_detection_platform.models.baseline import BaselineModelConfig, train_baseline_model
+from fraud_detection_platform.models.persistence import save_model
 
 
 @dataclass(frozen=True)
@@ -22,6 +23,7 @@ class TrainingPipelineConfig:
     random_state: int = 42
     prediction_threshold: float = 0.5
     model_config: BaselineModelConfig = BaselineModelConfig()
+    model_output_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -70,6 +72,9 @@ def run_training_pipeline(
         y_pred=fraud_predictions.tolist(),
         y_score=fraud_scores.tolist(),
     )
+
+    if resolved_config.model_output_path is not None:
+        save_model(model, resolved_config.model_output_path)
 
     return TrainingPipelineResult(
         metrics=metrics,
