@@ -4,6 +4,25 @@ A production-oriented fraud detection ML platform that turns transaction data in
 
 An end-to-end machine learning engineering project for fraud detection.
 
+## Project Highlights
+
+```text
+Built an end-to-end fraud detection ML platform using a modular Python package structure.
+Ingested and transformed 6.36M+ PaySim transactions.
+Engineered PaySim-specific balance movement features for fraud detection.
+Reduced false positives by about 75% compared with the generic baseline.
+Trained a calibrated fraud model with ROC-AUC of 0.9642 and PR-AUC of 0.2093.
+Evaluated thresholds using precision, recall, F1, ROC-AUC, PR-AUC, and confusion matrix metrics.
+Added cost-sensitive threshold analysis using configurable false positive, false negative, and review costs.
+Compared optimal thresholds across multiple business cost scenarios.
+Created risk-band decisioning: approve, manual review, high-risk review, and priority investigation.
+Built production-style batch scoring that omits ground-truth labels from scored outputs.
+Generated analyst-facing scored transaction CSVs and management-level action summaries.
+Created a priority investigation queue representing only 0.027% of transactions with a 75.44% fraud rate.
+Added CI quality checks with pytest, ruff, mypy, and pre-commit.
+Documented the system architecture, experiments, calibration, cost analysis, and scoring workflow.
+```
+
 This project demonstrates how to move beyond a notebook model into a production-style fraud detection workflow with:
 
 ```text
