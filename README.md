@@ -576,6 +576,7 @@ docs/ml-system/
 Important documents include:
 
 ```text
+architecture-overview.md
 data-ingestion-strategy.md
 paysim-baseline-results.md
 paysim-enriched-results.md
