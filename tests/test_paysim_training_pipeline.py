@@ -11,7 +11,9 @@ from fraud_detection_platform.pipelines.paysim_training import (
 )
 
 
-def test_run_paysim_training_pipeline_returns_metrics_and_row_counts(tmp_path: Path) -> None:
+def test_run_paysim_training_pipeline_returns_metrics_row_counts_and_scores_file(
+    tmp_path: Path,
+) -> None:
     raw_paysim_data = pd.DataFrame(
         {
             "step": [index + 1 for index in range(20)],
@@ -149,26 +151,56 @@ def test_run_paysim_training_pipeline_returns_metrics_and_row_counts(tmp_path: P
                 3300.0,
                 3400.0,
             ],
-            "isFraud": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            "isFraud": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+            ],
         }
     )
 
     raw_paysim_path = tmp_path / "raw_paysim.csv"
     model_output_path = tmp_path / "paysim_model.joblib"
+    scores_output_path = tmp_path / "paysim_scores.csv"
 
     raw_paysim_data.to_csv(raw_paysim_path, index=False)
 
     result = run_paysim_training_pipeline(
         raw_paysim_data_path=raw_paysim_path,
-        config=PaySimTrainingPipelineConfig(model_output_path=model_output_path),
+        config=PaySimTrainingPipelineConfig(
+            model_output_path=model_output_path,
+            scores_output_path=scores_output_path,
+        ),
     )
 
     loaded_model = load_model(model_output_path)
+    score_data = pd.read_csv(scores_output_path)
 
     assert result.train_rows == 15
     assert result.test_rows == 5
     assert model_output_path.exists()
+    assert scores_output_path.exists()
+    assert result.scores_output_path == scores_output_path
     assert loaded_model is not None
+    assert list(score_data.columns) == ["is_fraud", "fraud_score", "fraud_prediction"]
+    assert len(score_data) == result.test_rows
     assert 0.0 <= result.metrics.precision <= 1.0
     assert 0.0 <= result.metrics.recall <= 1.0
     assert 0.0 <= result.metrics.f1 <= 1.0

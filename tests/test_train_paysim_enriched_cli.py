@@ -29,6 +29,7 @@ def test_train_paysim_enriched_cli_accepts_required_argument() -> None:
     assert args.threshold == 0.5
     assert args.random_state == 42
     assert args.model_output_path is None
+    assert args.scores_output_path is None
 
 
 def test_train_paysim_enriched_cli_accepts_optional_arguments() -> None:
@@ -46,6 +47,8 @@ def test_train_paysim_enriched_cli_accepts_optional_arguments() -> None:
             "123",
             "--model-output-path",
             "models/paysim_enriched_fraud_model.joblib",
+            "--scores-output-path",
+            "reports/paysim_enriched_test_scores.csv",
         ]
     )
 
@@ -54,3 +57,4 @@ def test_train_paysim_enriched_cli_accepts_optional_arguments() -> None:
     assert args.threshold == 0.7
     assert args.random_state == 123
     assert args.model_output_path == Path("models/paysim_enriched_fraud_model.joblib")
+    assert args.scores_output_path == Path("reports/paysim_enriched_test_scores.csv")

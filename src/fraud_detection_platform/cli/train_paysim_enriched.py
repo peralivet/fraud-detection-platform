@@ -50,6 +50,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional path where the trained model artifact should be saved.",
     )
 
+    parser.add_argument(
+        "--scores-output-path",
+        type=Path,
+        default=None,
+        help="Optional path where test-set fraud scores should be saved.",
+    )
+
     return parser
 
 
@@ -63,6 +70,7 @@ def main() -> None:
         random_state=args.random_state,
         prediction_threshold=args.threshold,
         model_output_path=args.model_output_path,
+        scores_output_path=args.scores_output_path,
     )
 
     result = run_paysim_training_pipeline(
@@ -82,6 +90,9 @@ def main() -> None:
     print(f"False positives: {result.metrics.false_positives}")
     print(f"False negatives: {result.metrics.false_negatives}")
     print(f"True positives: {result.metrics.true_positives}")
+
+    if result.scores_output_path is not None:
+        print(f"Test scores written to: {result.scores_output_path}")
 
 
 if __name__ == "__main__":

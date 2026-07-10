@@ -30,6 +30,7 @@ class PaySimTrainingPipelineConfig:
     prediction_threshold: float = 0.5
     model_config: PaySimBaselineModelConfig = PaySimBaselineModelConfig()
     model_output_path: Path | None = None
+    scores_output_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -39,6 +40,7 @@ class PaySimTrainingPipelineResult:
     metrics: ClassificationMetrics
     train_rows: int
     test_rows: int
+    scores_output_path: Path | None = None
 
 
 def run_paysim_training_pipeline(
@@ -98,8 +100,22 @@ def run_paysim_training_pipeline(
     if resolved_config.model_output_path is not None:
         save_model(model, resolved_config.model_output_path)
 
+    if resolved_config.scores_output_path is not None:
+        resolved_config.scores_output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        score_data = pd.DataFrame(
+            {
+                "is_fraud": y_test.tolist(),
+                "fraud_score": fraud_scores.tolist(),
+                "fraud_prediction": fraud_predictions.tolist(),
+            }
+        )
+
+        score_data.to_csv(resolved_config.scores_output_path, index=False)
+
     return PaySimTrainingPipelineResult(
         metrics=metrics,
         train_rows=len(x_train),
         test_rows=len(x_test),
+        scores_output_path=resolved_config.scores_output_path,
     )
