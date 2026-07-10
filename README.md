@@ -1,5 +1,7 @@
 # Fraud Detection Platform
 
+A production-oriented fraud detection ML platform that turns transaction data into calibrated fraud scores, cost-aware thresholds, operational risk actions, and analyst-ready scoring outputs.
+
 An end-to-end machine learning engineering project for fraud detection.
 
 This project demonstrates how to move beyond a notebook model into a production-style fraud detection workflow with:
