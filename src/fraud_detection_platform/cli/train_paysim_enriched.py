@@ -44,6 +44,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--model-type",
+        choices=["uncalibrated", "calibrated"],
+        default="uncalibrated",
+        help="Type of PaySim model to train.",
+    )
+
+    parser.add_argument(
         "--model-output-path",
         type=Path,
         default=None,
@@ -69,6 +76,7 @@ def main() -> None:
         test_size=args.test_size,
         random_state=args.random_state,
         prediction_threshold=args.threshold,
+        model_type=args.model_type,
         model_output_path=args.model_output_path,
         scores_output_path=args.scores_output_path,
     )
@@ -79,6 +87,7 @@ def main() -> None:
     )
 
     print("PaySim-enriched fraud training completed")
+    print(f"Model type: {args.model_type}")
     print(f"Train rows: {result.train_rows}")
     print(f"Test rows: {result.test_rows}")
     print(f"Precision: {result.metrics.precision:.4f}")

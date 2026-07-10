@@ -28,6 +28,7 @@ def test_train_paysim_enriched_cli_accepts_required_argument() -> None:
     assert args.test_size == 0.25
     assert args.threshold == 0.5
     assert args.random_state == 42
+    assert args.model_type == "uncalibrated"
     assert args.model_output_path is None
     assert args.scores_output_path is None
 
@@ -45,10 +46,12 @@ def test_train_paysim_enriched_cli_accepts_optional_arguments() -> None:
             "0.7",
             "--random-state",
             "123",
+            "--model-type",
+            "calibrated",
             "--model-output-path",
-            "models/paysim_enriched_fraud_model.joblib",
+            "models/paysim_calibrated_fraud_model.joblib",
             "--scores-output-path",
-            "reports/paysim_enriched_test_scores.csv",
+            "reports/paysim_calibrated_test_scores.csv",
         ]
     )
 
@@ -56,5 +59,20 @@ def test_train_paysim_enriched_cli_accepts_optional_arguments() -> None:
     assert args.test_size == 0.3
     assert args.threshold == 0.7
     assert args.random_state == 123
-    assert args.model_output_path == Path("models/paysim_enriched_fraud_model.joblib")
-    assert args.scores_output_path == Path("reports/paysim_enriched_test_scores.csv")
+    assert args.model_type == "calibrated"
+    assert args.model_output_path == Path("models/paysim_calibrated_fraud_model.joblib")
+    assert args.scores_output_path == Path("reports/paysim_calibrated_test_scores.csv")
+
+
+def test_train_paysim_enriched_cli_rejects_invalid_model_type() -> None:
+    parser = build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(
+            [
+                "--raw-paysim-data-path",
+                "data/external/PS_20174392719_1491204439457_log.csv",
+                "--model-type",
+                "unsupported",
+            ]
+        )

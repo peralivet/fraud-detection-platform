@@ -2,7 +2,10 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal, Protocol, cast
 
+import numpy as np
+import numpy.typing as npt
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -13,12 +16,29 @@ from fraud_detection_platform.evaluation.metrics import (
 )
 from fraud_detection_platform.features.paysim_features import add_paysim_balance_features
 from fraud_detection_platform.features.transformers import build_basic_feature_table
+from fraud_detection_platform.models.calibrated_paysim import (
+    CalibratedPaySimModelConfig,
+    train_calibrated_paysim_model,
+)
 from fraud_detection_platform.models.paysim_baseline import (
     PaySimBaselineModelConfig,
     select_paysim_enriched_features,
     train_paysim_baseline_model,
 )
 from fraud_detection_platform.models.persistence import save_model
+
+PaySimModelType = Literal["uncalibrated", "calibrated"]
+
+
+class FraudProbabilityModel(Protocol):
+    """Protocol for fitted models that can output fraud probabilities."""
+
+    def predict_proba(
+        self,
+        features: pd.DataFrame,
+    ) -> npt.NDArray[np.float64]:
+        """Predict class probabilities for fraud model features."""
+        ...
 
 
 @dataclass(frozen=True)
@@ -28,7 +48,9 @@ class PaySimTrainingPipelineConfig:
     test_size: float = 0.25
     random_state: int = 42
     prediction_threshold: float = 0.5
+    model_type: PaySimModelType = "uncalibrated"
     model_config: PaySimBaselineModelConfig = PaySimBaselineModelConfig()
+    calibrated_model_config: CalibratedPaySimModelConfig = CalibratedPaySimModelConfig()
     model_output_path: Path | None = None
     scores_output_path: Path | None = None
 
@@ -41,6 +63,36 @@ class PaySimTrainingPipelineResult:
     train_rows: int
     test_rows: int
     scores_output_path: Path | None = None
+
+
+def _train_model(
+    features: pd.DataFrame,
+    target: pd.Series,
+    config: PaySimTrainingPipelineConfig,
+) -> FraudProbabilityModel:
+    """Train the configured PaySim model type."""
+    if config.model_type == "uncalibrated":
+        return cast(
+            FraudProbabilityModel,
+            train_paysim_baseline_model(
+                features=features,
+                target=target,
+                config=config.model_config,
+            ),
+        )
+
+    if config.model_type == "calibrated":
+        return cast(
+            FraudProbabilityModel,
+            train_calibrated_paysim_model(
+                features=features,
+                target=target,
+                config=config.calibrated_model_config,
+            ),
+        )
+
+    msg = f"Unsupported PaySim model type: {config.model_type}"
+    raise ValueError(msg)
 
 
 def run_paysim_training_pipeline(
@@ -82,13 +134,14 @@ def run_paysim_training_pipeline(
         stratify=target,
     )
 
-    model = train_paysim_baseline_model(
+    model = _train_model(
         features=x_train,
         target=y_train,
-        config=resolved_config.model_config,
+        config=resolved_config,
     )
 
-    fraud_scores = model.predict_proba(x_test)[:, 1]
+    fraud_probabilities = model.predict_proba(x_test)
+    fraud_scores = fraud_probabilities[:, 1]
     fraud_predictions = (fraud_scores >= resolved_config.prediction_threshold).astype(int)
 
     metrics = calculate_classification_metrics(
