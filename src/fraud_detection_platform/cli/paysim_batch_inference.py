@@ -67,6 +67,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Minimum calibrated fraud score for priority investigation.",
     )
 
+    parser.add_argument(
+        "--production-mode",
+        action="store_true",
+        help="Omit ground-truth labels from the scored output.",
+    )
+
     return parser
 
 
@@ -84,6 +90,7 @@ def main() -> None:
     config = PaySimBatchInferenceConfig(
         prediction_threshold=args.threshold,
         risk_policy=risk_policy,
+        include_labels=not args.production_mode,
     )
 
     result = run_paysim_batch_inference_pipeline(
@@ -96,6 +103,9 @@ def main() -> None:
     print("PaySim calibrated batch inference completed")
     print(f"Scored rows: {result.scored_rows}")
     print(f"Predictions written to: {result.output_path}")
+
+    if args.production_mode:
+        print("Production mode: labels omitted from output")
 
 
 if __name__ == "__main__":

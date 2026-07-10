@@ -23,6 +23,7 @@ class PaySimBatchInferenceConfig:
 
     prediction_threshold: float = 0.010
     risk_policy: CalibratedRiskDecisionPolicy = CalibratedRiskDecisionPolicy()
+    include_labels: bool = True
 
 
 @dataclass(frozen=True)
@@ -102,7 +103,7 @@ def run_paysim_batch_inference_pipeline(
         "recommended_action",
     ]
 
-    if TARGET_COLUMN in scored_data.columns:
+    if resolved_config.include_labels and TARGET_COLUMN in scored_data.columns:
         selected_columns.append(TARGET_COLUMN)
 
     resolved_output_path = Path(output_path)

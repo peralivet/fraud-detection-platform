@@ -63,3 +63,21 @@ def test_paysim_batch_inference_cli_accepts_custom_thresholds() -> None:
     assert args.review_threshold == 0.02
     assert args.high_risk_threshold == 0.08
     assert args.priority_threshold == 0.15
+
+
+def test_paysim_batch_inference_cli_accepts_production_mode() -> None:
+    parser = build_parser()
+
+    args = parser.parse_args(
+        [
+            "--raw-paysim-data-path",
+            "data/external/PS_20174392719_1491204439457_log.csv",
+            "--model-path",
+            "models/paysim_calibrated_fraud_model.joblib",
+            "--output-path",
+            "reports/paysim_calibrated_scored_transactions_production.csv",
+            "--production-mode",
+        ]
+    )
+
+    assert args.production_mode is True
