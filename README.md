@@ -631,6 +631,7 @@ paysim-calibration-results.md
 paysim-cost-sensitive-threshold-results.md
 paysim-cost-scenario-comparison.md
 paysim-calibrated-batch-inference-results.md
+fraud-platform-case-study.md
 ```
 
 ---
