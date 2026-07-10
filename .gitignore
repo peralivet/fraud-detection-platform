@@ -43,3 +43,6 @@ logs/
 *.log
 *.egg-info/
 build/
+
+#kaggle helper
+kagglefile.py
