@@ -125,6 +125,75 @@ priority_investigation
 
 ---
 
+## Production Scoring Mode
+
+The batch inference pipeline also supports production-style scoring.
+
+In production, ground-truth fraud labels are usually not available at scoring time. A transaction is scored before the business knows whether it is truly fraudulent.
+
+For that reason, production scoring should omit the label column:
+
+```text
+is_fraud
+```
+
+The production scoring command was:
+
+```bash
+python -m fraud_detection_platform.cli.paysim_batch_inference \
+  --raw-paysim-data-path data/external/PS_20174392719_1491204439457_log.csv \
+  --model-path models/paysim_calibrated_fraud_model.joblib \
+  --output-path reports/paysim_calibrated_scored_transactions_production.csv \
+  --threshold 0.010 \
+  --review-threshold 0.010 \
+  --high-risk-threshold 0.075 \
+  --priority-threshold 0.100 \
+  --production-mode
+```
+
+The production output was written to:
+
+```text
+reports/paysim_calibrated_scored_transactions_production.csv
+```
+
+The production output contains:
+
+```text
+transaction_id
+customer_id
+transaction_time
+transaction_amount
+merchant_category
+payment_channel
+fraud_score
+fraud_prediction
+recommended_action
+```
+
+It intentionally excludes:
+
+```text
+is_fraud
+```
+
+This makes the output more realistic for a fraud analyst or risk manager.
+
+The production file tells the business:
+
+```text
+which transaction was scored
+who/customer was involved
+when the transaction occurred
+how much the transaction was worth
+what type of transaction it was
+what fraud score the model assigned
+whether the transaction crossed the fraud threshold
+what operational action is recommended
+```
+
+This supports real-world fraud operations because the analyst receives both the model decision and the transaction context needed for investigation.
+
 ## 6. Action Distribution
 
 The action distribution was:
