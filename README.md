@@ -23,6 +23,30 @@ Added CI quality checks with pytest, ruff, mypy, and pre-commit.
 Documented the system architecture, experiments, calibration, cost analysis, and scoring workflow.
 ```
 
+## How to Review This Project
+
+If you are reviewing this project quickly, start with these files:
+
+```text
+README.md
+docs/ml-system/architecture-overview.md
+docs/ml-system/paysim-calibrated-batch-inference-results.md
+docs/ml-system/paysim-cost-scenario-comparison.md
+```
+
+Recommended review path:
+
+```text
+1. Read the Project Highlights section in README.md.
+2. Review the architecture overview to understand the system design.
+3. Review the calibrated batch inference results to see the production-style scoring workflow.
+4. Review the cost scenario comparison to understand how business assumptions affect threshold selection.
+5. Browse the src/fraud_detection_platform package to inspect the tested implementation.
+6. Check the tests/ directory to see coverage across data, features, models, evaluation, risk policies, and pipelines.
+```
+
+The most important takeaway is that this project is not just a fraud classification model. It is a production-oriented ML decisioning workflow that connects model scores to risk actions, cost trade-offs, analyst outputs, and management summaries.
+
 This project demonstrates how to move beyond a notebook model into a production-style fraud detection workflow with:
 
 ```text
